@@ -11,6 +11,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
   title: "Next.js and Supabase Starter Kit",
   description: "The fastest way to build apps with Next.js and Supabase",
+  other: {
+    // Cryptomus Domain Verification
+    'cryptomus': 'c0a00db0'
+  }
 };
 
 const geistSans = Geist({
@@ -26,10 +30,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-       <head>
-        {/* Cryptomus Domain Verification */}
-        <meta name="cryptomus" content="c0a00db0" />
-      </head>
       <body className={`${geistSans.className} antialiased`}>
         <ThemeProvider
           attribute="class"
