@@ -47,6 +47,12 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
+  // Add user info to response headers for our middleware
+  if (user) {
+    supabaseResponse.headers.set('x-user-id', user.sub);
+    supabaseResponse.headers.set('x-supabase-user', 'true');
+  }
+
   if (
     request.nextUrl.pathname !== "/" &&
     !user &&
