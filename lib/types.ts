@@ -77,6 +77,19 @@ export interface GenerateFlashcardsResponse {
   };
 }
 
+// User usage response type
+export interface UserUsageResponse {
+  success: boolean;
+  usage: {
+    generated_this_month: number;
+    monthly_limit: number;
+    remaining: number;
+  };
+  tier: UserTier;
+  subscription_expires_at?: string;
+  error?: string;
+}
+
 // Payment related types
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
 

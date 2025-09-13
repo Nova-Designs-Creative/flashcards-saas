@@ -12,6 +12,7 @@ import { AlertCircle, BookOpen, Brain, Plus, Sparkles } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FlashcardSetList } from "@/components/flashcard-set-list";
+import { PremiumUpgradeBanner } from "@/components/premium-upgrade-banner";
 import { FlashcardSet } from "@/lib/types";
 
 export default function FlashcardsPage() {
@@ -28,6 +29,7 @@ export default function FlashcardsPage() {
     monthly_limit: 10,
     remaining: 10
   });
+  const [tier, setTier] = useState<string>("free");
 
   useEffect(() => {
     fetchFlashcardSets();
@@ -41,6 +43,7 @@ export default function FlashcardsPage() {
 
       if (data.success) {
         setUsage(data.usage);
+        setTier(data.tier);
       }
     } catch (error) {
       console.error("Failed to fetch usage stats:", error);
@@ -70,7 +73,7 @@ export default function FlashcardsPage() {
     }
 
     if (usage.remaining <= 0) {
-      setError("You've reached your monthly limit. Upgrade to premium for unlimited flashcards!");
+      setError("You've reached your monthly limit. Please upgrade to premium for unlimited flashcards!");
       return;
     }
 
@@ -100,6 +103,9 @@ export default function FlashcardsPage() {
       if (data.usage) {
         setUsage(data.usage);
       }
+
+      // Refresh usage stats to ensure sync
+      await fetchUsageStats();
 
       // Clear form on success
       setNotes("");
@@ -170,6 +176,11 @@ export default function FlashcardsPage() {
         </p>
       </div>
 
+      {/* Premium Upgrade Banner */}
+      <div className="mb-6">
+        <PremiumUpgradeBanner usage={usage} tier={tier} />
+      </div>
+
       {/* Usage Stats */}
       <Card className="mb-6">
         <CardHeader className="pb-3">
@@ -192,11 +203,6 @@ export default function FlashcardsPage() {
                 style={{ width: `${Math.min(progressPercentage, 100)}%` }}
               />
             </div>
-            {usage.remaining <= 2 && (
-              <p className="text-sm text-muted-foreground">
-                Running low on flashcards? <Button variant="link" className="p-0 h-auto">Upgrade to Premium</Button> for unlimited generation.
-              </p>
-            )}
           </div>
         </CardContent>
       </Card>

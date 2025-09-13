@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify the transaction belongs to this user and is completed
+    // Verify the transaction belongs to this user
     const { data: transaction, error: transactionError } = await supabase
       .from("payment_transactions")
       .select("*")
@@ -39,14 +39,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update transaction status to completed
-    await supabase
-      .from("payment_transactions")
-      .update({
-        status: "completed",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", transaction_id);
+    // Check if transaction is already completed (webhook may have processed it)
+    if (transaction.status === "completed") {
+      // Just verify user is already upgraded
+      const { data: userData } = await supabase
+        .from("users")
+        .select("tier")
+        .eq("id", user.id)
+        .single();
+
+      if (userData?.tier === "premium") {
+        return NextResponse.json({
+          success: true,
+          message: "Account already upgraded to premium",
+          alreadyUpgraded: true
+        });
+      }
+    }
+
+    // Update transaction status to completed if not already
+    if (transaction.status !== "completed") {
+      await supabase
+        .from("payment_transactions")
+        .update({
+          status: "completed",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", transaction_id);
+    }
 
     // Update user tier to premium
     const premiumLimit = parseInt(process.env.PREMIUM_TIER_MONTHLY_LIMIT || "1000");

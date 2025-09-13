@@ -43,15 +43,34 @@ export default function PremiumPage() {
         throw new Error(data.error || "Failed to create payment");
       }
 
+      // Store transaction ID for potential recovery
+      if (data.transaction_id) {
+        localStorage.setItem('pending_transaction_id', data.transaction_id);
+      }
+
       // Redirect to Cryptomus payment page
       if (data.payment_url) {
+        // Show loading message while redirecting
+        setError("Redirecting to secure payment page...");
         window.location.href = data.payment_url;
       } else {
-        throw new Error("No payment URL received");
+        throw new Error("No payment URL received from payment gateway");
       }
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+      console.error("Payment creation error:", err);
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+      
+      // Provide helpful error messages
+      if (errorMessage.includes("already have an active")) {
+        setError("You already have an active premium subscription!");
+      } else if (errorMessage.includes("pending payment")) {
+        setError("You have a pending payment. Please complete it or wait for it to expire.");
+      } else if (errorMessage.includes("configuration")) {
+        setError("Payment system is temporarily unavailable. Please try again later.");
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
