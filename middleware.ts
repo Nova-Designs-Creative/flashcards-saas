@@ -2,6 +2,11 @@ import { updateSession } from "@/lib/supabase/middleware";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  // Skip middleware for Cryptomus verification file
+  if (request.nextUrl.pathname === '/cryptomus_c0a00db0.html') {
+    return NextResponse.next();
+  }
+
   // Update session for all requests
   const response = await updateSession(request);
   
@@ -48,8 +53,9 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
+     * - cryptomus_c0a00db0.html (verification file)
      * Feel free to modify this pattern to include more paths.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|cryptomus_c0a00db0.html|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
