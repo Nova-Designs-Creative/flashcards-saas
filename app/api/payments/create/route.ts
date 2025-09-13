@@ -56,7 +56,7 @@ async function createCryptomusPayment(amount: number, currency: string, userId: 
   };
 }
 
-function generateCryptomusSignature(data: Record<string, any>, apiKey: string): string {
+function generateCryptomusSignature(data: Record<string, unknown>, apiKey: string): string {
   // Convert data to base64
   const base64Data = Buffer.from(JSON.stringify(data)).toString('base64');
   

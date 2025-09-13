@@ -103,7 +103,7 @@ export interface PaymentTransaction {
   payment_method?: string;
   tier_purchased: UserTier;
   expires_at?: string;
-  cryptomus_data?: Record<string, any>;
+  cryptomus_data?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -170,7 +170,7 @@ export interface EditSetFormData {
 export interface APIError {
   error: string;
   code?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 // Pagination types

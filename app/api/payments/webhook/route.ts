@@ -23,10 +23,10 @@ interface CryptomusWebhookPayload {
   sign: string;
 }
 
-function verifyWebhookSignature(payload: any, signature: string, apiKey: string): boolean {
+function verifyWebhookSignature(payload: CryptomusWebhookPayload, signature: string, apiKey: string): boolean {
   try {
     // Remove the sign field from payload for verification
-    const { sign, ...dataToVerify } = payload;
+    const { sign: _sign, ...dataToVerify } = payload;
     
     // Convert to base64
     const base64Data = Buffer.from(JSON.stringify(dataToVerify)).toString('base64');

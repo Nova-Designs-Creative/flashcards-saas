@@ -15,8 +15,8 @@ const AVAILABLE_MODELS = [
   "openai/gpt-oss-20b",       // Good balance of speed/quality
 ];
 
-async function createChatCompletion(messages: any[], systemPrompt: string, userPrompt: string) {
-  let lastError;
+async function createChatCompletion(messages: Array<{ role: string; content: string }>, systemPrompt: string, userPrompt: string) {
+  let lastError: unknown;
   
   for (const model of AVAILABLE_MODELS) {
     try {
@@ -31,12 +31,18 @@ async function createChatCompletion(messages: any[], systemPrompt: string, userP
       });
       
       return completion;
-    } catch (error: any) {
-      console.warn(`Model ${model} failed:`, error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.warn(`Model ${model} failed:`, errorMessage);
       lastError = error;
       
+      // Type guard for API errors
+      const isAPIError = (err: unknown): err is { status?: number; message?: string } => {
+        return typeof err === 'object' && err !== null;
+      };
+      
       // If it's not a model decommissioned error, throw immediately
-      if (error.status !== 400 || !error.message?.includes('decommissioned')) {
+      if (isAPIError(error) && (error.status !== 400 || !error.message?.includes('decommissioned'))) {
         throw error;
       }
       
@@ -95,7 +101,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Check usage limits
-    const estimatedFlashcards = Math.min(Math.floor(notes.length / 100), 20);
     const remainingQuota = userData.monthly_limit - userData.flashcards_generated_this_month;
 
     if (remainingQuota <= 0) {
@@ -157,7 +162,7 @@ ${notes}`;
       // Parse the JSON response
       try {
         generatedFlashcards = JSON.parse(responseContent);
-      } catch (parseError) {
+      } catch {
         console.error("Failed to parse Groq response:", responseContent);
         throw new Error("Invalid response format from AI");
       }
@@ -165,11 +170,16 @@ ${notes}`;
       if (!Array.isArray(generatedFlashcards) || generatedFlashcards.length === 0) {
         throw new Error("No flashcards generated from the provided notes");
       }
-    } catch (groqError: any) {
+    } catch (groqError: unknown) {
       console.error("Groq API Error:", groqError);
       
+      // Type guard for API errors
+      const isAPIError = (err: unknown): err is { status?: number; message?: string } => {
+        return typeof err === 'object' && err !== null;
+      };
+      
       // Handle specific Groq errors
-      if (groqError.status === 429) {
+      if (isAPIError(groqError) && groqError.status === 429) {
         return NextResponse.json(
           { 
             success: false, 
@@ -177,7 +187,7 @@ ${notes}`;
           },
           { status: 429 }
         );
-      } else if (groqError.status === 401) {
+      } else if (isAPIError(groqError) && groqError.status === 401) {
         return NextResponse.json(
           { 
             success: false, 
@@ -186,10 +196,11 @@ ${notes}`;
           { status: 500 }
         );
       } else {
+        const errorMessage = isAPIError(groqError) ? groqError.message : 'Unknown error';
         return NextResponse.json(
           { 
             success: false, 
-            error: `Groq API error: ${groqError.message || 'Unknown error'}` 
+            error: `Groq API error: ${errorMessage}` 
           },
           { status: 500 }
         );
