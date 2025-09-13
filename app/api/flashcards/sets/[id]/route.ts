@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -18,7 +18,8 @@ export async function GET(
       );
     }
 
-    const setId = params.id;
+    const { id } = await params;
+    const setId = id;
 
     // Get flashcard set with flashcards
     const { data: flashcardSet, error: setError } = await supabase
@@ -75,7 +76,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -90,7 +91,8 @@ export async function PUT(
       );
     }
 
-    const setId = params.id;
+    const { id } = await params;
+    const setId = id;
     const { title, description } = await request.json();
 
     if (!title?.trim()) {
@@ -142,7 +144,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -157,7 +159,8 @@ export async function DELETE(
       );
     }
 
-    const setId = params.id;
+    const { id } = await params;
+    const setId = id;
 
     // Delete flashcard set (flashcards will be deleted automatically due to CASCADE)
     const { error: deleteError } = await supabase

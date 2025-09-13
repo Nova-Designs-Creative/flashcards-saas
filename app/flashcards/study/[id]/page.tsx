@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +16,8 @@ import {
 import { FlashcardViewer } from "@/components/flashcard-viewer";
 import { FlashcardSet, StudySessionResult } from "@/lib/types";
 
-export default function StudyPage({ params }: { params: { id: string } }) {
+export default function StudyPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const [flashcardSet, setFlashcardSet] = useState<FlashcardSet | null>(null);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -32,7 +33,7 @@ export default function StudyPage({ params }: { params: { id: string } }) {
   const fetchFlashcardSet = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/flashcards/sets/${params.id}`);
+      const response = await fetch(`/api/flashcards/sets/${id}`);
       const data = await response.json();
 
       if (!data.success) {
@@ -45,7 +46,7 @@ export default function StudyPage({ params }: { params: { id: string } }) {
     } finally {
       setIsLoading(false);
     }
-  }, [params.id]);
+  }, [id]);
 
   useEffect(() => {
     fetchFlashcardSet();
